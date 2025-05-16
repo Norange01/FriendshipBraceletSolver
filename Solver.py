@@ -237,16 +237,16 @@ class Solver:
     def update_possibilities(self, threads_per_color_dict): # according to the 5 rules. Returns a flag that says whether changes were made
         changes_made=False
         # 1. Num of threads per color should be constant across rows
-        for i, row in enumerate(self.threads_grid.grid):
-            for c in self.colors:
+        for i, row in enumerate(self.threads_grid.grid): # O(C*T*R)
+            for c in self.colors: # O(C*T)
                 # count that color in that row
                 color_ctr=0
-                for thread in row:
+                for thread in row: # O(T)
                     if(thread.final_value==c):
                         color_ctr+=1
                 if(color_ctr==threads_per_color_dict[c]):
                     # remove that color's possibility from other threads
-                    for t, thread in enumerate(row):
+                    for t, thread in enumerate(row): # O(T)
                         if(len(thread.possibilities)>1): # only if thread doesn't have a final value yet
                             removal_result=thread.remove_possibility(c)
                             if(removal_result!=0):
@@ -261,8 +261,8 @@ class Solver:
         #self.display_possibilities() # log
 
         # 2. At least one of the two threads before the knot should have the goal color of that knot
-        for kr, knot_row in enumerate(self.target_design):
-            for k, knot_color in enumerate(knot_row):
+        for kr, knot_row in enumerate(self.target_design): # O(T*R)
+            for k, knot_color in enumerate(knot_row): # O(T)
                 input_thread_corrds=self.get_knot_input_threads(kr, k)
                 t1_row=input_thread_corrds[0][0]
                 t1_col=input_thread_corrds[0][1]
@@ -301,14 +301,14 @@ class Solver:
         #self.display_possibilities() # log
 
         # 3. Locked threads should have the same color as itself in the next row
-        for row_idx in range(self.num_rows-1):
-            for col_idx, thread in enumerate(self.threads_grid.grid[row_idx]):
+        for row_idx in range(self.num_rows-1): # O(R*(T+C))
+            for col_idx, thread in enumerate(self.threads_grid.grid[row_idx]): # O(T+C) because it's only O(C) at the locked edges
                 if(thread.isLocked()):
                     # remove the colors specific to only one of them from both of their possibilities
                     t1_possibilities=set(self.threads_grid.grid[row_idx][col_idx].possibilities)
                     t2_possibilities=set(self.threads_grid.grid[row_idx+1][col_idx].possibilities)
                     c_to_remove=list((t1_possibilities|t2_possibilities)-(t1_possibilities&t2_possibilities)) # their union minus their intersection
-                    for c in c_to_remove:
+                    for c in c_to_remove: # O(C)
                         removal_result1=self.threads_grid.grid[row_idx][col_idx].remove_possibility(c)
                         removal_result2=self.threads_grid.grid[row_idx+1][col_idx].remove_possibility(c)
                         if(removal_result1!=0 or removal_result2!=0):
@@ -325,8 +325,8 @@ class Solver:
         
         # 4. Moving pairs can either switch or stay in place
         # In other words, threads exiting a knot have to be the same colors as those entering the knot
-        for kr, knot_row in enumerate(self.target_design):
-            for k, knot_color in enumerate(knot_row):
+        for kr, knot_row in enumerate(self.target_design): # O(C*T*R)
+            for k, knot_color in enumerate(knot_row): # O(C*T)
                 input_thread_corrds=self.get_knot_input_threads(kr, k)
                 left_in_row=input_thread_corrds[0][0]
                 left_in_col=input_thread_corrds[0][1]
@@ -344,7 +344,7 @@ class Solver:
                 output_possibilities=set(self.threads_grid.grid[left_out_row][left_out_col].possibilities)|set(self.threads_grid.grid[right_out_row][right_out_col].possibilities)
                 c_to_remove=list((input_possibilities|output_possibilities)-(input_possibilities&output_possibilities)) # their union minus their intersection
 
-                for c in c_to_remove:
+                for c in c_to_remove: # O(C)
                     removal_results=[]
                     removal_results.append(self.threads_grid.grid[left_in_row][left_in_col].remove_possibility(c))
                     removal_results.append(self.threads_grid.grid[right_in_row][right_in_col].remove_possibility(c))
@@ -447,7 +447,7 @@ class Solver:
         #self.display_possibilities() # log
         
         # 5. Final threads should be the same as the initial threads
-        for col_idx, thread in enumerate(self.threads_grid.grid[-1]):
+        for col_idx, thread in enumerate(self.threads_grid.grid[-1]): # O(C*T)
             #print("Checking column "+str(col_idx)) # log
             #self.display_possibilities()
             # remove the colors specific to only one of them from both of their possibilities
@@ -455,7 +455,7 @@ class Solver:
             t2_possibilities=set(self.threads_grid.grid[0][col_idx].possibilities) # first row
             c_to_remove=list((t1_possibilities|t2_possibilities)-(t1_possibilities&t2_possibilities)) # their union minus their intersection
 
-            for c in c_to_remove:
+            for c in c_to_remove: # O(C)
                 removal_result1=self.threads_grid.grid[-1][col_idx].remove_possibility(c) # last row
                 #print("Removing "+c+" from column "+str(col_idx)+" last row") # log
                 #self.display_possibilities() # log      
@@ -519,8 +519,7 @@ class Solver:
                 print("Solution is complete.") # log
             if(self.find_all_solutions):
                 self.update_best_solution()
-            else:
-                return 0
+                # it will return 0 at the end
         else:
             # Make a random possibility selection
             pre_change_threads_grid = copy.deepcopy(self.threads_grid)
@@ -545,7 +544,7 @@ class Solver:
                 try:
                     if(self._solve(combo, depth+1)==0 and not self.find_all_solutions):
                         return 0
-                    self._solve(combo, depth+1)
+                    #self._solve(combo, depth+1)
                 except NoPossibleSolution:
                     self.threads_grid=copy.deepcopy(pre_change_threads_grid)
                     if(self.verbose>1):
@@ -733,11 +732,11 @@ class Solver:
                             arrow=get_color_appropriate_arrow(3, color_hex)
 
 
-                draw.line([(oval_x_start,oval_y_start),(oval_x_start+OVAL_RADIUS,oval_y_start+OVAL_RADIUS)], fill=left_in, width=LINE_THICKNESS)
-                draw.line([(oval_x_start+(2*OVAL_RADIUS),oval_y_start),(oval_x_start+OVAL_RADIUS,oval_y_start+OVAL_RADIUS)], fill=right_in, width=LINE_THICKNESS)
-                draw.line([(oval_x_start+OVAL_RADIUS,oval_y_start+OVAL_RADIUS),(oval_x_start+(2*OVAL_RADIUS),oval_y_start+(2*OVAL_RADIUS))], fill=right_out, width=LINE_THICKNESS)
-                draw.line([(oval_x_start+OVAL_RADIUS,oval_y_start+OVAL_RADIUS),(oval_x_start,oval_y_start+(2*OVAL_RADIUS))], fill=left_out, width=LINE_THICKNESS)
-                
+                draw.line([(oval_x_start-15,oval_y_start-15),(oval_x_start+OVAL_RADIUS,oval_y_start+OVAL_RADIUS)], fill=left_in, width=LINE_THICKNESS) # upper left
+                draw.line([(oval_x_start+(2*OVAL_RADIUS)+15,oval_y_start-15),(oval_x_start+OVAL_RADIUS,oval_y_start+OVAL_RADIUS)], fill=right_in, width=LINE_THICKNESS) # upper right
+                draw.line([(oval_x_start+OVAL_RADIUS,oval_y_start+OVAL_RADIUS),(oval_x_start+(2*OVAL_RADIUS)+15,oval_y_start+(2*OVAL_RADIUS)+15)], fill=right_out, width=LINE_THICKNESS) # lower right
+                draw.line([(oval_x_start+OVAL_RADIUS,oval_y_start+OVAL_RADIUS),(oval_x_start-15,oval_y_start+(2*OVAL_RADIUS)+15)], fill=left_out, width=LINE_THICKNESS) # lower left
+
                 draw.ellipse((oval_x_start, oval_y_start, oval_x_start+OVAL_RADIUS*2, oval_y_start+OVAL_RADIUS*2), fill = color_hex, outline='black')
                 if(arrow):
                     image.paste(arrow, (oval_x_start+int(OVAL_RADIUS/2), oval_y_start+int(OVAL_RADIUS/2)),arrow)
