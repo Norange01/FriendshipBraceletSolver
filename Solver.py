@@ -261,6 +261,7 @@ class Solver:
         if(self.verbose>1):
             print("Rule 1 passed") # log
         #self.display_possibilities() # log
+        self.solution_diagrams.append(self.display_diagram())
 
         # 2. At least one of the two threads before the knot should have the goal color of that knot
         for kr, knot_row in enumerate(self.target_design): # O(T*R)
@@ -301,6 +302,7 @@ class Solver:
         if(self.verbose>1):
             print("Rule 2 passed") # log
         #self.display_possibilities() # log
+        self.solution_diagrams.append(self.display_diagram())
 
         # 3. Locked threads should have the same color as itself in the next row
         for row_idx in range(self.num_rows-1): # O(R*(T+C))
@@ -324,6 +326,7 @@ class Solver:
         if(self.verbose>1):
             print("Rule 3 passed") # log
         #self.display_possibilities() # log
+        self.solution_diagrams.append(self.display_diagram())
         
         # 4. Moving pairs can either switch or stay in place
         # In other words, threads exiting a knot have to be the same colors as those entering the knot
@@ -447,11 +450,13 @@ class Solver:
         if(self.verbose>1):
             print("Rule 4 passed") # log
         #self.display_possibilities() # log
+        self.solution_diagrams.append(self.display_diagram())
         
         # 5. Final threads should be the same as the initial threads
         for col_idx, thread in enumerate(self.threads_grid.grid[-1]): # O(C*T)
             #print("Checking column "+str(col_idx)) # log
             #self.display_possibilities()
+            self.solution_diagrams.append(self.display_diagram())
             # remove the colors specific to only one of them from both of their possibilities
             t1_possibilities=set(self.threads_grid.grid[-1][col_idx].possibilities) # last row
             t2_possibilities=set(self.threads_grid.grid[0][col_idx].possibilities) # first row
@@ -460,10 +465,12 @@ class Solver:
             for c in c_to_remove: # O(C)
                 removal_result1=self.threads_grid.grid[-1][col_idx].remove_possibility(c) # last row
                 #print("Removing "+c+" from column "+str(col_idx)+" last row") # log
-                #self.display_possibilities() # log      
+                #self.display_possibilities() # log
+                self.solution_diagrams.append(self.display_diagram())      
                 removal_result2=self.threads_grid.grid[0][col_idx].remove_possibility(c) # first row
                 #print("Removing "+c+" from column "+str(col_idx)+" first row") # log
                 #self.display_possibilities() # log
+                self.solution_diagrams.append(self.display_diagram())
                 if(removal_result1!=0 or removal_result2!=0):
                     changes_made=True
 
@@ -475,6 +482,7 @@ class Solver:
         if(self.verbose>1):
             print("Rule 5 passed") # log        
         #self.display_possibilities() # log
+        self.solution_diagrams.append(self.display_diagram())
         
         # Return flag
         return changes_made
@@ -521,7 +529,7 @@ class Solver:
                 print(prefix+"Updated possibilities "+str(ctr)+" times.") # log
         if(self.check_for_completion()):
             self.save_gif()
-            self.solution_diagrams
+            self.solution_diagrams.append(self.display_diagram())
             if(self.verbose>0):
                 print("Solution is complete.") # log
             if(self.find_all_solutions):
