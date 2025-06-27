@@ -6,6 +6,7 @@ import copy
 from PIL import Image, ImageDraw, ImageOps
 import numpy as np
 from IPython.display import display
+import imageio
 
 OVAL_RADIUS=20
 LINE_THICKNESS=10
@@ -131,6 +132,7 @@ class Solver:
         self.target_design=target_design
         self.best_knot_simplicity_score=0
         self.best_pattern_repetitiveness_score=0
+        self.solution_diagrams=[]
         # figure out colors
         self.colors=set(target_design[0])
         for row in target_design:
@@ -498,6 +500,8 @@ class Solver:
         for i in range(depth):
             prefix+="-"
 
+        self.solution_diagrams=[]
+
         # Update possibilities
         ctr=0
         changes_made=1 # arbitrary value >0
@@ -505,6 +509,7 @@ class Solver:
         while(changes_made!=0):
             #print("Current possibilities: ") # log
             #self.display_possibilities() # log
+            self.solution_diagrams.append(self.display_diagram())
             if(self.verbose>1):
                 self.display_diagram() # log
             if(self.verbose>2):
@@ -515,6 +520,8 @@ class Solver:
             if(self.verbose>1):
                 print(prefix+"Updated possibilities "+str(ctr)+" times.") # log
         if(self.check_for_completion()):
+            self.save_gif()
+            self.solution_diagrams
             if(self.verbose>0):
                 print("Solution is complete.") # log
             if(self.find_all_solutions):
@@ -744,3 +751,13 @@ class Solver:
 
         image=ImageOps.expand(image, border=1, fill='white')
         return image
+
+    def save_gif(self):
+        imageio.mimsave('solution.gif', self.solution_diagrams, loop=0, disposal=2)
+
+
+    def get_solution_diagrams(self): #unused
+        return self.solution_diagrams
+    
+    def save_solution_diagram(self):
+        self.solution_diagrams.save("solution.png")

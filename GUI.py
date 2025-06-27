@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import colorchooser
 import numpy as np
+from Solver import Solver
+from PIL import Image
+import time
 
 DEFAULT_COLOR='#ffffff'
 MIN_ROWS=2
@@ -22,6 +25,11 @@ class BraceletSolver:
 
         self.canvas = tk.Canvas(self.root, width=600, height=600, bg="white")
         self.canvas.pack()
+
+        self.img_space = tk.Label(self.root, image="")
+        self.img_space.pack()
+        self.current_frame=0
+        self.photoimage_objects=[]
 
         self.controls = tk.Frame(self.root)
         self.controls.pack(side='bottom')
@@ -150,10 +158,26 @@ class BraceletSolver:
         for i in range(len(self.diamonds)):
             target_design[self.diamond_positions[i+1][0]][self.diamond_positions[i+1][1]]=self.diamonds[i+1]
 
+        solver=Solver(target_design)
+        solution=solver.solve(False,0)
+        gif_file = Image.open("solution.gif")
+        frames=gif_file.n_frames
+        photoimage_objects=[]
+        for i in range(frames):
+            obj = tk.PhotoImage(file = "solution.gif", format=f"gif -index {i}")
+            photoimage_objects.append(obj)
         
-        
+        self.current_frame=0
+        self.photoimage_objects = photoimage_objects
+        self.animate_gif()
 
 
+    def animate_gif(self):
+        if(self.current_frame<len(self.photoimage_objects)):
+            self.img_space.configure(image=self.photoimage_objects[self.current_frame])
+            self.current_frame+=1
+            self.root.after(500, self.animate_gif)
+            
 if __name__ == "__main__":
     root = tk.Tk()
     app = BraceletSolver(root)
