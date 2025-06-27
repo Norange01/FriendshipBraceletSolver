@@ -36,6 +36,7 @@ class BraceletSolver:
         tk.Button(self.controls, text="Remove Thread", command=self.remove_thread).pack(side="left")
         tk.Button(self.controls, text="Clear", command=self.clear_colors).pack(side="left")
         tk.Button(self.controls, text="Remove Row Pair", command=self.remove_two_rows).pack(side="left")
+        tk.Button(self.controls, text="SOLVE", command=self.solve).pack(side="left")
 
         self.draw_grid()
         self.update_dimensions_label()
@@ -137,6 +138,21 @@ class BraceletSolver:
         for item in self.diamonds:
             self.canvas.itemconfig(item, fill=DEFAULT_COLOR)
             self.diamonds[item] = DEFAULT_COLOR
+
+    def solve(self):
+        target_design = []
+        for row_pair in range(int(self.rows/2)):
+            target_design.append(['#ffffff']*int(np.floor(self.threads/2)))
+            if(self.threads%2==0):
+                target_design.append(['#ffffff']*int(np.floor(self.threads/2)-1))
+            else:
+                target_design.append(['#ffffff']*int(np.floor(self.threads/2)))
+        for i in range(len(self.diamonds)):
+            target_design[self.diamond_positions[i+1][0]][self.diamond_positions[i+1][1]]=self.diamonds[i+1]
+
+        
+        
+
 
 if __name__ == "__main__":
     root = tk.Tk()
