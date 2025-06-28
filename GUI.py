@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import colorchooser
 import numpy as np
 from Solver import Solver
-from PIL import Image
+from PIL import Image, ImageTk
 import time
 
 DEFAULT_COLOR='#ffffff'
@@ -22,29 +22,38 @@ class BraceletSolver:
         self.diamond_size = 40
         self.diamonds = {}
         self.diamond_positions={}
+        num_colors=self.get_num_colors()
+
+        self.controls = tk.Frame(self.root)
+        self.controls.pack(side='top')
+        self.info = tk.Frame(self.root)
+        self.info.pack(side='top')
+        self.outputOptions = tk.Frame(self.root)
+        self.outputOptions.pack(side='bottom')
+
+        self.dimensions_label=tk.Label(self.info, text=f"Threads x Rows = {self.threads} x {self.rows}, {num_colors} colors")
+        self.dimensions_label.pack(side="bottom")
+        
+        tk.Button(self.controls, text="Add Row Pair", command=self.add_two_rows).pack(side="left")
+        tk.Button(self.controls, text="Remove Row Pair", command=self.remove_two_rows).pack(side="left")
+
+        tk.Button(self.controls, text="Add Thread", command=self.add_thread).pack(side="left")
+        tk.Button(self.controls, text="Remove Thread", command=self.remove_thread).pack(side="left")
+
+        tk.Button(self.controls, text="Clear", command=self.clear_colors).pack(side="left")
+        
+        tk.Button(self.controls, text="SOLVE", command=self.solve).pack(side="left")
 
         self.canvas = tk.Canvas(self.root, width=600, height=600, bg="white")
         self.canvas.pack()
+
+        tk.Button(self.outputOptions, text="Save PNG", command=self.savePNG).pack(side="left")
+        tk.Button(self.outputOptions, text="Save GIF", command=self.saveGIF).pack(side="left")
 
         self.img_space = tk.Label(self.root, image="")
         self.img_space.pack()
         self.current_frame=0
         self.photoimage_objects=[]
-
-        self.controls = tk.Frame(self.root)
-        self.controls.pack(side='bottom')
-        self.info = tk.Frame(self.root)
-        self.info.pack(side='top')
-        
-        num_colors=self.get_num_colors()
-        self.dimensions_label=tk.Label(self.info, text=f"Threads x Rows = {self.threads} x {self.rows}, {num_colors} colors")
-        self.dimensions_label.pack(side="bottom")
-        tk.Button(self.controls, text="Add Row Pair", command=self.add_two_rows).pack(side="left")
-        tk.Button(self.controls, text="Add Thread", command=self.add_thread).pack(side="left")
-        tk.Button(self.controls, text="Remove Thread", command=self.remove_thread).pack(side="left")
-        tk.Button(self.controls, text="Clear", command=self.clear_colors).pack(side="left")
-        tk.Button(self.controls, text="Remove Row Pair", command=self.remove_two_rows).pack(side="left")
-        tk.Button(self.controls, text="SOLVE", command=self.solve).pack(side="left")
 
         self.draw_grid()
         self.update_dimensions_label()
@@ -181,15 +190,16 @@ class BraceletSolver:
 
         solver=Solver(target_design)
         solution=solver.solve(False,0)
-        gif_file = Image.open("solution.gif")
-        frames=gif_file.n_frames
-        photoimage_objects=[]
+        gif = solver.get_solution_diagrams()
+
+        frames=len(gif)
+        self.photoimage_objects=[]
         for i in range(frames):
-            obj = tk.PhotoImage(file = "solution.gif", format=f"gif -index {i}")
-            photoimage_objects.append(obj)
-        
+            obj = ImageTk.PhotoImage(gif[i])
+            self.photoimage_objects.append(obj)
+
+        #gif_file = Image.open("solution.gif")
         self.current_frame=0
-        self.photoimage_objects = photoimage_objects
         self.animate_gif()
 
 
@@ -197,8 +207,13 @@ class BraceletSolver:
         if(self.current_frame<len(self.photoimage_objects)):
             self.img_space.configure(image=self.photoimage_objects[self.current_frame])
             self.current_frame+=1
-            self.root.after(500, self.animate_gif)
-            
+            self.root.after(100, self.animate_gif)
+
+    def savePNG(self):
+        self.photoimage_objects[-1].save("Solution.png")
+
+    def saveGIF(self):
+        self.photoimage_objects.save("Solution.gif")     
 if __name__ == "__main__":
     root = tk.Tk()
     app = BraceletSolver(root)
