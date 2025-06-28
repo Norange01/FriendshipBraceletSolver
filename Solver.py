@@ -508,8 +508,6 @@ class Solver:
         for i in range(depth):
             prefix+="-"
 
-        self.solution_diagrams=[]
-
         # Update possibilities
         ctr=0
         changes_made=1 # arbitrary value >0
@@ -571,6 +569,7 @@ class Solver:
         return 0
         
     def solve(self, find_all_solutions=False, verbose=0):
+        self.solution_diagrams = []
         if(verbose>1 and find_all_solutions):
             raise Exception("find_all_solutions is only supported with verbose=0,1.")
         self.find_all_solutions=find_all_solutions

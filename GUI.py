@@ -65,6 +65,9 @@ class BraceletSolver:
                 cols-=1
             for col in range(cols):
                 self.draw_diamond(row, col)
+        print("grid drawn")
+        print(self.diamonds)
+        print(self.diamond_positions)
 
     def draw_diamond(self, row, col, fill_color=DEFAULT_COLOR):
         size = self.diamond_size
@@ -92,6 +95,9 @@ class BraceletSolver:
             self.canvas.itemconfig(item, fill=color)
             self.diamonds[item] = color
         self.update_dimensions_label()
+        print("color changed")
+        print(self.diamonds)
+        print(self.diamond_positions)
 
     def add_row(self):
         max_bound=int(np.floor(self.threads/2))
@@ -116,11 +122,17 @@ class BraceletSolver:
         if(self.rows-2>=MIN_ROWS):
             self.remove_row()
             self.remove_row()
+            print("removed two rows")
+            print(self.diamonds)
+            print(self.diamond_positions)
     
     def add_two_rows(self):
         if(self.rows+2<=MAX_ROWS):
             self.add_row()
             self.add_row()
+            print("added two rows")
+            print(self.diamonds)
+            print(self.diamond_positions)
 
     def add_thread(self):
         if(self.threads+1<=MAX_THREADS):
@@ -130,6 +142,9 @@ class BraceletSolver:
                     self.draw_diamond(row=i, col=column)
             self.threads += 1
             self.update_dimensions_label()
+            print("added thread")
+            print(self.diamonds)
+            print(self.diamond_positions)
 
     def remove_thread(self):
         if(self.threads-1>=MIN_THREADS):
@@ -141,13 +156,19 @@ class BraceletSolver:
                     del self.diamond_positions[id]
             self.threads-=1
             self.update_dimensions_label()
+            print("removed thread")
+            print(self.diamonds)
+            print(self.diamond_positions)
 
     def clear_colors(self):
         for item in self.diamonds:
             self.canvas.itemconfig(item, fill=DEFAULT_COLOR)
             self.diamonds[item] = DEFAULT_COLOR
+        
 
     def solve(self):
+        print(self.diamonds)
+        print(self.diamond_positions)
         target_design = []
         for row_pair in range(int(self.rows/2)):
             target_design.append(['#ffffff']*int(np.floor(self.threads/2)))
