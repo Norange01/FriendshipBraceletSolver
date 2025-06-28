@@ -37,6 +37,8 @@ class BraceletSolver:
 
         self.dimensions_label=tk.Label(self.info, text=f"Threads x Rows = {self.threads} x {self.rows}, {num_colors} colors")
         self.dimensions_label.pack(side="bottom")
+        self.status_label = tk.Label(self.info, text=f"Welcome! Insert the colors of the design you want:")
+        self.status_label.pack(side="bottom")
         
         self.addRowPairBtn = tk.Button(self.controls, text="Add Row Pair", command=self.add_two_rows)
         self.addRowPairBtn.pack(side="left")
@@ -220,9 +222,13 @@ class BraceletSolver:
         for item_id, (row, col) in self.diamond_positions.items():
             target_design[row][col] = self.diamonds[item_id]
 
-
-        solver=Solver(target_design)
-        solution=solver.solve(False,0)
+        try:
+            solver=Solver(target_design)
+            solution=solver.solve(False,0)
+        except:
+            self.status_label.configure(text="NO POSSIBLE SOLUTION")
+            self.status_label.configure(fg='red')
+            self.img_space.configure(image="")
         self.diagrams = solver.get_solution_diagrams()
         
 
