@@ -18,7 +18,7 @@ ANIMATION_DURATION=5000 #ms
 class BraceletSolver:
     def __init__(self, root):
         self.root = root
-        self.root.title("Bracelet Pattern Designer")
+        self.root.title("Friendship Bracelet Solver")
 
         self.rows = MIN_ROWS
         self.threads = MIN_THREADS
@@ -37,22 +37,22 @@ class BraceletSolver:
 
         self.dimensions_label=tk.Label(self.info, text=f"Threads x Rows = {self.threads} x {self.rows}, {num_colors} colors")
         self.dimensions_label.pack(side="bottom")
-        self.status_label = tk.Label(self.info, text=f"Welcome! Insert the colors of the design you want:")
+        self.status_label = tk.Label(self.info, text=f"Welcome! Insert the colors of the design you want")
         self.status_label.pack(side="bottom")
         
-        self.addRowPairBtn = tk.Button(self.controls, text="Add Row Pair", command=self.add_two_rows)
-        self.addRowPairBtn.pack(side="left")
-        self.removeRowPairBtn = tk.Button(self.controls, text="Remove Row Pair", command=self.remove_two_rows, state="disabled")
-        self.removeRowPairBtn.pack(side="left")
+        self.addRowPairBtn = tk.Button(self.controls, text="Add Row Pair", command=self.add_two_rows, width=19)
+        self.addRowPairBtn.grid(row=1, column=0)
+        self.removeRowPairBtn = tk.Button(self.controls, text="Remove Row Pair", command=self.remove_two_rows, state="disabled", width=19)
+        self.removeRowPairBtn.grid(row=1, column=1)
 
-        self.addThreadBtn = tk.Button(self.controls, text="Add Thread", command=self.add_thread)
-        self.addThreadBtn.pack(side="left")
-        self.removeThreadBtn=tk.Button(self.controls, text="Remove Thread", command=self.remove_thread, state="disabled")
-        self.removeThreadBtn.pack(side="left")
+        self.addThreadBtn = tk.Button(self.controls, text="Add Thread", command=self.add_thread, width=19)
+        self.addThreadBtn.grid(row=2, column=0)
+        self.removeThreadBtn=tk.Button(self.controls, text="Remove Thread", command=self.remove_thread, state="disabled", width=19)
+        self.removeThreadBtn.grid(row=2, column=1)
 
-        tk.Button(self.controls, text="Clear", command=self.clear_colors).pack(side="left")
+        tk.Button(self.controls, text="Clear", command=self.clear_colors, width=40).grid(row=0, column=0, columnspan=2)
         
-        tk.Button(self.controls, text="SOLVE", command=self.solve).pack(side="left")
+        tk.Button(self.controls, text="SOLVE", command=self.solve, width=40).grid(row=3, column=0, columnspan=2)
 
         self.canvas = tk.Canvas(self.root, width=600, height=600, bg="white")
         self.canvas.pack()
@@ -88,9 +88,6 @@ class BraceletSolver:
                 cols-=1
             for col in range(cols):
                 self.draw_diamond(row, col)
-        print("grid drawn")
-        print(self.diamonds)
-        print(self.diamond_positions)
 
     def draw_diamond(self, row, col, fill_color=DEFAULT_COLOR):
         size = self.diamond_size
@@ -118,9 +115,6 @@ class BraceletSolver:
             self.canvas.itemconfig(item, fill=color)
             self.diamonds[item] = color
         self.update_dimensions_label()
-        print("color changed")
-        print(self.diamonds)
-        print(self.diamond_positions)
         self.status_label.configure(text="")
 
     def add_row(self):
@@ -146,9 +140,6 @@ class BraceletSolver:
         if(self.rows-2>=MIN_ROWS):
             self.remove_row()
             self.remove_row()
-            print("removed two rows")
-            print(self.diamonds)
-            print(self.diamond_positions)
             if(self.rows<=MIN_ROWS):
                 self.removeRowPairBtn.configure(state="disabled")
             elif(self.rows<MAX_ROWS):
@@ -160,9 +151,6 @@ class BraceletSolver:
         if(self.rows+2<=MAX_ROWS):
             self.add_row()
             self.add_row()
-            print("added two rows")
-            print(self.diamonds)
-            print(self.diamond_positions)
             if(self.rows>=MAX_ROWS):
                 self.addRowPairBtn.configure(state="disabled")
             elif(self.rows>MIN_ROWS):
@@ -177,9 +165,6 @@ class BraceletSolver:
                     self.draw_diamond(row=i, col=column)
             self.threads += 1
             self.update_dimensions_label()
-            print("added thread")
-            print(self.diamonds)
-            print(self.diamond_positions)
             if(self.threads>=MAX_THREADS):
                 self.addThreadBtn.configure(state="disabled")
             elif(self.threads>MIN_THREADS):
@@ -196,9 +181,6 @@ class BraceletSolver:
                     del self.diamond_positions[id]
             self.threads-=1
             self.update_dimensions_label()
-            print("removed thread")
-            print(self.diamonds)
-            print(self.diamond_positions)
             if(self.threads<=MIN_THREADS):
                 self.removeThreadBtn.configure(state="disabled")
             elif(self.threads<MAX_THREADS):
@@ -215,8 +197,6 @@ class BraceletSolver:
 
     def solve(self):
         self.status_label.update_idletasks()
-        print(self.diamonds)
-        print(self.diamond_positions)
         target_design = []
         for row_pair in range(int(self.rows/2)):
             target_design.append(['#ffffff']*int(np.floor(self.threads/2)))
@@ -233,7 +213,7 @@ class BraceletSolver:
         self.status_label.configure(text="Solving, please wait...")
         self.status_label.configure(fg="black")
         self.status_label.update_idletasks()
-        
+
         try:
             solver=Solver(target_design)
             solution=solver.solve(False,0)
@@ -267,6 +247,10 @@ class BraceletSolver:
             self.root.after(int(ANIMATION_DURATION/len(self.photoimage_objects)), self.animate_gif)
 
     def savePNG(self):
+        if not self.diagrams:
+            self.status_label.configure(text="No PNG to save")
+            self.status_label.configure(fg="black")
+            return
         self.diagrams[-1].save("FriendshipBracelet_Solution.png")
         self.status_label.configure(text="PNG saved successfully")
         self.status_label.configure(fg="black")
@@ -274,7 +258,8 @@ class BraceletSolver:
 
     def saveGIF(self):
         if not self.diagrams:
-            print("No diagrams to save.")
+            self.status_label.configure(text="No GIF to save")
+            self.status_label.configure(fg="black")
             return
         imageio.mimsave("FriendshipBracelet_Solution.gif", self.diagrams, loop=0, disposal=2)
         self.status_label.configure(text="GIF saved successfully")
