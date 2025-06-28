@@ -221,6 +221,7 @@ class BraceletSolver:
             self.status_label.configure(text="NO POSSIBLE SOLUTION")
             self.status_label.configure(fg='red')
             self.img_space.configure(image="")
+            return
         self.diagrams = solver.get_solution_diagrams()
         
 
