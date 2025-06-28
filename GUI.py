@@ -12,6 +12,7 @@ MIN_ROWS=2
 MIN_THREADS=6
 MAX_ROWS=40
 MAX_THREADS=30
+ANIMATION_DURATION=5000 #ms
 
 
 class BraceletSolver:
@@ -243,7 +244,7 @@ class BraceletSolver:
         if(self.current_frame<len(self.photoimage_objects)):
             self.img_space.configure(image=self.photoimage_objects[self.current_frame])
             self.current_frame+=1
-            self.root.after(100, self.animate_gif)
+            self.root.after(int(ANIMATION_DURATION/len(self.photoimage_objects)), self.animate_gif)
 
     def savePNG(self):
         self.diagrams[-1].save("FriendshipBracelet_Solution.png")
