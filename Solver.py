@@ -523,7 +523,6 @@ class Solver:
             if(self.verbose>1):
                 print(prefix+"Updated possibilities "+str(ctr)+" times.") # log
         if(self.check_for_completion()):
-            self.save_gif()
             self.solution_diagrams.append(self.get_diagram())
             if(self.verbose>0):
                 print("Solution is complete.") # log
@@ -756,12 +755,13 @@ class Solver:
         image=ImageOps.expand(image, border=1, fill='white')
         return image
 
-    def save_gif(self):
-        imageio.mimsave('solution.gif', self.solution_diagrams, loop=0, disposal=2)
+    def save_gif(self): # unused
+        imageio.mimsave('solver_gif.gif', self.solution_diagrams, loop=0, disposal=2)
 
 
-    def get_solution_diagrams(self): #unused
+    def get_solution_diagrams(self):
         return self.solution_diagrams
+        
     
-    def save_solution_diagram(self):
+    def save_solution_diagram(self): #unused
         self.solution_diagrams.save("solution.png")

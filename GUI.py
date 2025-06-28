@@ -2,8 +2,10 @@ import tkinter as tk
 from tkinter import colorchooser
 import numpy as np
 from Solver import Solver
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw, ImageOps
 import time
+import imageio
+from IPython.display import display
 
 DEFAULT_COLOR='#ffffff'
 MIN_ROWS=2
@@ -23,6 +25,7 @@ class BraceletSolver:
         self.diamonds = {}
         self.diamond_positions={}
         num_colors=self.get_num_colors()
+        self.diagrams = []
 
         self.controls = tk.Frame(self.root)
         self.controls.pack(side='top')
@@ -34,11 +37,15 @@ class BraceletSolver:
         self.dimensions_label=tk.Label(self.info, text=f"Threads x Rows = {self.threads} x {self.rows}, {num_colors} colors")
         self.dimensions_label.pack(side="bottom")
         
-        tk.Button(self.controls, text="Add Row Pair", command=self.add_two_rows).pack(side="left")
-        tk.Button(self.controls, text="Remove Row Pair", command=self.remove_two_rows).pack(side="left")
+        self.addRowPairBtn = tk.Button(self.controls, text="Add Row Pair", command=self.add_two_rows)
+        self.addRowPairBtn.pack(side="left")
+        self.removeRowPairBtn = tk.Button(self.controls, text="Remove Row Pair", command=self.remove_two_rows, state="disabled")
+        self.removeRowPairBtn.pack(side="left")
 
-        tk.Button(self.controls, text="Add Thread", command=self.add_thread).pack(side="left")
-        tk.Button(self.controls, text="Remove Thread", command=self.remove_thread).pack(side="left")
+        self.addThreadBtn = tk.Button(self.controls, text="Add Thread", command=self.add_thread)
+        self.addThreadBtn.pack(side="left")
+        self.removeThreadBtn=tk.Button(self.controls, text="Remove Thread", command=self.remove_thread, state="disabled")
+        self.removeThreadBtn.pack(side="left")
 
         tk.Button(self.controls, text="Clear", command=self.clear_colors).pack(side="left")
         
@@ -47,8 +54,12 @@ class BraceletSolver:
         self.canvas = tk.Canvas(self.root, width=600, height=600, bg="white")
         self.canvas.pack()
 
-        tk.Button(self.outputOptions, text="Save PNG", command=self.savePNG).pack(side="left")
-        tk.Button(self.outputOptions, text="Save GIF", command=self.saveGIF).pack(side="left")
+        self.replayBtn=tk.Button(self.outputOptions, text="Replay", command=self.replay_animation, state="disabled")
+        self.replayBtn.pack(side="left")
+        self.savePNGBtn=tk.Button(self.outputOptions, text="Save PNG", command=self.savePNG, state="disabled")
+        self.savePNGBtn.pack(side="left")
+        self.saveGIFBtn=tk.Button(self.outputOptions, text="Save GIF", command=self.saveGIF, state="disabled")
+        self.saveGIFBtn.pack(side="left")
 
         self.img_space = tk.Label(self.root, image="")
         self.img_space.pack()
@@ -134,6 +145,11 @@ class BraceletSolver:
             print("removed two rows")
             print(self.diamonds)
             print(self.diamond_positions)
+            if(self.rows<=MIN_ROWS):
+                self.removeRowPairBtn.configure(state="disabled")
+            elif(self.rows<MAX_ROWS):
+                self.addRowPairBtn.configure(state="normal")
+
     
     def add_two_rows(self):
         if(self.rows+2<=MAX_ROWS):
@@ -142,6 +158,10 @@ class BraceletSolver:
             print("added two rows")
             print(self.diamonds)
             print(self.diamond_positions)
+            if(self.rows>=MAX_ROWS):
+                self.addRowPairBtn.configure(state="disabled")
+            elif(self.rows>MIN_ROWS):
+                self.removeRowPairBtn.configure(state="normal")
 
     def add_thread(self):
         if(self.threads+1<=MAX_THREADS):
@@ -154,6 +174,10 @@ class BraceletSolver:
             print("added thread")
             print(self.diamonds)
             print(self.diamond_positions)
+            if(self.threads>=MAX_THREADS):
+                self.addThreadBtn.configure(state="disabled")
+            elif(self.threads>MIN_THREADS):
+                self.removeThreadBtn.configure(state="normal")
 
     def remove_thread(self):
         if(self.threads-1>=MIN_THREADS):
@@ -168,6 +192,10 @@ class BraceletSolver:
             print("removed thread")
             print(self.diamonds)
             print(self.diamond_positions)
+            if(self.threads<=MIN_THREADS):
+                self.removeThreadBtn.configure(state="disabled")
+            elif(self.threads<MAX_THREADS):
+                self.addThreadBtn.configure(state="normal")
 
     def clear_colors(self):
         for item in self.diamonds:
@@ -185,20 +213,28 @@ class BraceletSolver:
                 target_design.append(['#ffffff']*int(np.floor(self.threads/2)-1))
             else:
                 target_design.append(['#ffffff']*int(np.floor(self.threads/2)))
-        for i in range(len(self.diamonds)):
-            target_design[self.diamond_positions[i+1][0]][self.diamond_positions[i+1][1]]=self.diamonds[i+1]
+        '''for i in range(len(self.diamonds)):
+            target_design[self.diamond_positions[i+1][0]][self.diamond_positions[i+1][1]]=self.diamonds[i+1]'''
+
+        for item_id, (row, col) in self.diamond_positions.items():
+            target_design[row][col] = self.diamonds[item_id]
+
 
         solver=Solver(target_design)
         solution=solver.solve(False,0)
-        gif = solver.get_solution_diagrams()
+        self.diagrams = solver.get_solution_diagrams()
+        
 
-        frames=len(gif)
+        frames=len(self.diagrams)
         self.photoimage_objects=[]
         for i in range(frames):
-            obj = ImageTk.PhotoImage(gif[i])
+            obj = ImageTk.PhotoImage(self.diagrams[i])
             self.photoimage_objects.append(obj)
 
+        self.activateOutputButtons()
+        
         #gif_file = Image.open("solution.gif")
+        
         self.current_frame=0
         self.animate_gif()
 
@@ -210,10 +246,26 @@ class BraceletSolver:
             self.root.after(100, self.animate_gif)
 
     def savePNG(self):
-        self.photoimage_objects[-1].save("Solution.png")
+        self.diagrams[-1].save("FriendshipBracelet_Solution.png")
+        
 
     def saveGIF(self):
-        self.photoimage_objects.save("Solution.gif")     
+        if not self.diagrams:
+            print("No diagrams to save.")
+            return
+        imageio.mimsave("FriendshipBracelet_Solution.gif", self.diagrams, loop=0, disposal=2)
+        print("GIF saved successfully.")
+
+
+    def replay_animation(self):
+        self.current_frame=0
+        self.animate_gif()
+
+    def activateOutputButtons(self):
+        self.replayBtn.configure(state="normal")
+        self.saveGIFBtn.configure(state="normal")
+        self.savePNGBtn.configure(state="normal")
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = BraceletSolver(root)
