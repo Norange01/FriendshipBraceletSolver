@@ -121,6 +121,7 @@ class BraceletSolver:
         print("color changed")
         print(self.diamonds)
         print(self.diamond_positions)
+        self.status_label.configure(text="")
 
     def add_row(self):
         max_bound=int(np.floor(self.threads/2))
@@ -152,6 +153,7 @@ class BraceletSolver:
                 self.removeRowPairBtn.configure(state="disabled")
             elif(self.rows<MAX_ROWS):
                 self.addRowPairBtn.configure(state="normal")
+            self.status_label.configure(text="")
 
     
     def add_two_rows(self):
@@ -165,6 +167,7 @@ class BraceletSolver:
                 self.addRowPairBtn.configure(state="disabled")
             elif(self.rows>MIN_ROWS):
                 self.removeRowPairBtn.configure(state="normal")
+            self.status_label.configure(text="")
 
     def add_thread(self):
         if(self.threads+1<=MAX_THREADS):
@@ -181,6 +184,7 @@ class BraceletSolver:
                 self.addThreadBtn.configure(state="disabled")
             elif(self.threads>MIN_THREADS):
                 self.removeThreadBtn.configure(state="normal")
+            self.status_label.configure(text="")
 
     def remove_thread(self):
         if(self.threads-1>=MIN_THREADS):
@@ -199,14 +203,18 @@ class BraceletSolver:
                 self.removeThreadBtn.configure(state="disabled")
             elif(self.threads<MAX_THREADS):
                 self.addThreadBtn.configure(state="normal")
+            self.status_label.configure(text="")
 
     def clear_colors(self):
         for item in self.diamonds:
             self.canvas.itemconfig(item, fill=DEFAULT_COLOR)
             self.diamonds[item] = DEFAULT_COLOR
+        self.status_label.configure(text="")
+        self.img_space.configure(image="")
         
 
     def solve(self):
+        self.status_label.update_idletasks()
         print(self.diamonds)
         print(self.diamond_positions)
         target_design = []
@@ -222,6 +230,10 @@ class BraceletSolver:
         for item_id, (row, col) in self.diamond_positions.items():
             target_design[row][col] = self.diamonds[item_id]
 
+        self.status_label.configure(text="Solving, please wait...")
+        self.status_label.configure(fg="black")
+        self.status_label.update_idletasks()
+        
         try:
             solver=Solver(target_design)
             solution=solver.solve(False,0)
@@ -239,6 +251,8 @@ class BraceletSolver:
             self.photoimage_objects.append(obj)
 
         self.activateOutputButtons()
+        self.status_label.configure(text="SOLUTION FOUND")
+        self.status_label.configure(fg="green")
         
         #gif_file = Image.open("solution.gif")
         
@@ -254,6 +268,8 @@ class BraceletSolver:
 
     def savePNG(self):
         self.diagrams[-1].save("FriendshipBracelet_Solution.png")
+        self.status_label.configure(text="PNG saved successfully")
+        self.status_label.configure(fg="black")
         
 
     def saveGIF(self):
@@ -261,7 +277,8 @@ class BraceletSolver:
             print("No diagrams to save.")
             return
         imageio.mimsave("FriendshipBracelet_Solution.gif", self.diagrams, loop=0, disposal=2)
-        print("GIF saved successfully.")
+        self.status_label.configure(text="GIF saved successfully")
+        self.status_label.configure(fg="black")
 
 
     def replay_animation(self):
